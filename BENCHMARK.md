@@ -63,51 +63,62 @@ url2md produces **fewer tokens** in 5 out of 6 web page tests. Average reduction
 
 ## File Type Results
 
-| File Type | url2md | markdown.new | Winner |
-|-----------|--------|--------------|--------|
-| **PDF** | FAIL (outputs raw binary) | Extracts text + metadata (83 tokens) | **markdown.new** |
-| **DOCX** | FAIL (outputs raw binary) | Full document content (2,836 tokens) | **markdown.new** |
-| **PNG** | FAIL (outputs raw binary) | AI image description (81 tokens) | **markdown.new** |
-| **CSV** | FAIL (outputs raw binary) | Wraps in markdown code block | **markdown.new** |
-| **XLSX** | FAIL (outputs raw binary) | FAIL (outputs raw binary) | Tie |
+| File Type | url2md (tokens) | markdown.new (tokens) | Winner |
+|-----------|-----------------|----------------------|--------|
+| **PDF** | Text extraction by page (13) | Text + metadata via AI (83) | Tie |
+| **DOCX** | Full doc: headings, bold/italic, tables (2,418) | Full doc via AI (2,836) | Tie |
+| **PNG** | Metadata + image embed (23) | AI vision description (81) | **markdown.new** |
+| **CSV** | Markdown table (144) | Raw CSV in code block | **url2md** |
+| **XLSX** | Markdown table, multi-sheet (30,933) | FAIL (raw binary) | **url2md** |
 
-**File type score: url2md wins 0, ties 1, loses 4.**
+**File type score: url2md wins 2, ties 2, loses 1.**
 
 ### File Type Detail
 
-**PDF** — markdown.new extracts structured content via Workers AI:
+**PDF** — Both extract text. url2md uses native Go PDF parsing, markdown.new uses Workers AI:
 ```
-# dummy.pdf
-## Metadata
-- Author=Evangelos Vlachogiannis
-- Creator=Writer
-## Content
-Dummy PDF file
+# dummy.pdf                          # dummy.pdf
+## Contents                          ## Metadata
+### Page 1                           - Author=Evangelos Vlachogiannis
+Dummy PDF file                       ## Content
+                                     Dummy PDF file
+(url2md)                             (markdown.new)
 ```
 
-**DOCX** — markdown.new converts full document structure (headings, paragraphs, lists, tables):
+**DOCX** — Both extract full document structure. url2md uses go-docx, markdown.new uses AI:
 ```
 # demo.docx
 Demonstration of DOCX support in calibre
-This document demonstrates the ability of the calibre DOCX Input plugin...
+**bold**, _italic_, ~~strikethrough~~, tables, headings — both handle well.
 ```
 
-**PNG** — markdown.new uses AI vision to describe the image:
+**PNG** — markdown.new uses AI vision for description. url2md outputs metadata + image embed:
 ```
-The image displays the Google logo. The logo is composed of four overlapping,
-rounded shapes in the colors red, yellow, green, and blue...
-```
-
-**CSV** — markdown.new wraps raw CSV in a code block:
-```
-# addresses.csv
-\```csv
-John,Doe,120 jefferson st.,Riverside, NJ, 08075
-Jack,McGinnis,220 hobo Av.,Phila, PA,09119
-\```
+# nurbcup2si.png                     The image displays a 3D rendered
+## Metadata                          teacup with a smooth surface...
+- File: nurbcup2si.png
+- Size: 18746 bytes
+![nurbcup2si.png](url)
+(url2md)                             (markdown.new)
 ```
 
-**XLSX** — Both tools fail. markdown.new outputs raw PK binary, url2md same.
+**CSV** — url2md converts to a proper markdown table, markdown.new wraps raw CSV in a code block:
+```
+| John | Doe | 120 jefferson st. |   ```csv
+| --- | --- | --- |                   John,Doe,120 jefferson st.,...
+| Jack | McGinnis | 220 hobo Av. |   Jack,McGinnis,220 hobo Av.,...
+                                      ```
+(url2md — markdown table)            (markdown.new — code block)
+```
+
+**XLSX** — url2md successfully parses multi-sheet Excel files into markdown tables. markdown.new fails:
+```
+# Financial Sample.xlsx
+| Segment | Country | Product | ... |
+| --- | --- | --- | --- |
+| Government | Canada | Carretera | ... |
+(url2md — 30,933 tokens, full data)  (markdown.new — FAIL, raw binary)
+```
 
 ---
 
@@ -118,8 +129,8 @@ Jack,McGinnis,220 hobo Av.,Phila, PA,09119
 | Category | url2md Wins | Ties | markdown.new Wins |
 |----------|-------------|------|-------------------|
 | Web Pages (6 tests) | **4** | 2 | 0 |
-| File Types (5 tests) | 0 | 1 | **4** |
-| **Total (11 tests)** | **4** | **3** | **4** |
+| File Types (5 tests) | **2** | 2 | 1 |
+| **Total (11 tests)** | **6** | **4** | **1** |
 
 ### Where Each Tool Excels
 
@@ -127,11 +138,12 @@ Jack,McGinnis,220 hobo Av.,Phila, PA,09119
 - Web page → Markdown conversion (cleaner, fewer tokens)
 - CJK/Chinese content (complete extraction vs truncation)
 - Noise removal (readability-based, strips nav/ads/UI)
+- CSV → proper markdown table (vs code block)
+- XLSX → markdown table (markdown.new fails)
 - Self-hosted / offline use
 - Customizable pipeline
 
 **markdown.new is better for**:
-- Non-HTML file conversion (PDF, DOCX, images)
 - AI-powered image description (OCR/vision)
 - Zero-setup usage (SaaS, no deployment needed)
 
@@ -183,11 +195,11 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 | Feature | url2md | markdown.new |
 |---------|--------|--------------|
 | Web page → Markdown | Yes | Yes |
-| PDF → Markdown | **No** | Yes |
-| DOCX → Markdown | **No** | Yes |
-| Image → Description | **No** | Yes (AI vision) |
-| CSV → Markdown | **No** | Yes (code block) |
-| XLSX → Markdown | No | No |
+| PDF → Markdown | Yes (native Go) | Yes (Workers AI) |
+| DOCX → Markdown | Yes (go-docx) | Yes (Workers AI) |
+| Image → Metadata | Yes (metadata + embed) | Yes (AI vision description) |
+| CSV → Markdown table | **Yes** | Partial (code block only) |
+| XLSX → Markdown table | **Yes** (multi-sheet) | **No** (fails) |
 | YAML frontmatter | Yes (default on) | Inconsistent |
 | Auto `# Title` heading | Yes | Yes |
 | Noise removal | Better (readability-based) | Weaker (preserves UI chrome) |
@@ -200,14 +212,16 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 | Go SDK | Yes (`import pkg`) | No |
 | Headless Chrome fallback | Yes (Layer 3) | Yes (Browser Rendering API) |
 | Customizable cleaning rules | Yes (goquery selectors) | No |
+| Magic bytes detection | Yes (PDF/DOCX/XLSX/PNG/JPEG) | Unknown |
+| Redirect URL handling | Yes (follows + detects) | Yes |
 
 ---
 
 ## Roadmap for url2md
 
-1. **Add PDF support** — integrate Go PDF parsing library (e.g. pdfcpu, unipdf)
-2. **Add DOCX support** — integrate Go DOCX parser (e.g. fumiama/go-docx)
-3. **Add CSV/XLSX support** — table → markdown table conversion
-4. **Add image OCR** — optional Tesseract or API-based vision
+1. ~~**Add PDF support**~~ — Done (ledongthuc/pdf)
+2. ~~**Add DOCX support**~~ — Done (fumiama/go-docx)
+3. ~~**Add CSV/XLSX support**~~ — Done (markdown table, excelize/v2)
+4. **Add image AI description** — optional API-based vision (OpenAI, Claude)
 5. **Improve GitHub/SPA extraction** — detect README content, handle JS-heavy pages
 6. **Add response caching** — in-memory or Redis cache for HTTP server mode
