@@ -6,9 +6,13 @@ Convert web pages to clean, LLM-friendly Markdown.
 
 - **Three-layer fallback pipeline**: Content negotiation → Static fetch → Headless Chrome
 - **Smart extraction**: Readability-based article extraction with noise removal
+- **File type support**: PDF, DOCX, XLSX, CSV, images (magic bytes detection)
+- **YAML frontmatter**: Auto-generated title, description, og:image metadata
 - **Token estimation**: Approximate token count with CJK support
 - **Metadata extraction**: Title, description, Open Graph tags
 - **Dual interface**: CLI tool + HTTP API server
+
+> **Online version**: When deployed on Cloudflare, image AI description is available via Workers AI vision.
 
 ## Install
 

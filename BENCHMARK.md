@@ -144,8 +144,9 @@ Demonstration of DOCX support in calibre
 - Customizable pipeline
 
 **markdown.new is better for**:
-- AI-powered image description (OCR/vision)
 - Zero-setup usage (SaaS, no deployment needed)
+
+> **Note**: Image AI description is available in the online (Cloudflare-hosted) version of url2md. The self-hosted/CLI version outputs image metadata + embed.
 
 ---
 
@@ -197,7 +198,7 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 | Web page → Markdown | Yes | Yes |
 | PDF → Markdown | Yes (native Go) | Yes (Workers AI) |
 | DOCX → Markdown | Yes (go-docx) | Yes (Workers AI) |
-| Image → Metadata | Yes (metadata + embed) | Yes (AI vision description) |
+| Image → Description | Yes (AI vision, online only) | Yes (AI vision) |
 | CSV → Markdown table | **Yes** | Partial (code block only) |
 | XLSX → Markdown table | **Yes** (multi-sheet) | **No** (fails) |
 | YAML frontmatter | Yes (default on) | Inconsistent |
@@ -222,6 +223,6 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 1. ~~**Add PDF support**~~ — Done (ledongthuc/pdf)
 2. ~~**Add DOCX support**~~ — Done (fumiama/go-docx)
 3. ~~**Add CSV/XLSX support**~~ — Done (markdown table, excelize/v2)
-4. **Add image AI description** — optional API-based vision (OpenAI, Claude)
+4. ~~**Add image AI description**~~ — Available in online version (Cloudflare Workers AI vision)
 5. **Improve GitHub/SPA extraction** — detect README content, handle JS-heavy pages
 6. **Add response caching** — in-memory or Redis cache for HTTP server mode
