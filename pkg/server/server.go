@@ -15,6 +15,7 @@ type convertRequest struct {
 	Method       string `json:"method,omitempty"`
 	RetainImages bool   `json:"retain_images,omitempty"`
 	RetainLinks  *bool  `json:"retain_links,omitempty"`
+	Frontmatter  *bool  `json:"frontmatter,omitempty"`
 }
 
 type convertResponse struct {
@@ -95,6 +96,9 @@ func (s *Server) handleConvert(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("enable_browser") == "true" {
 			opts.EnableBrowser = true
 		}
+		if r.URL.Query().Get("frontmatter") == "false" {
+			opts.Frontmatter = false
+		}
 
 	case http.MethodPost:
 		var req convertRequest
@@ -109,6 +113,9 @@ func (s *Server) handleConvert(w http.ResponseWriter, r *http.Request) {
 		opts.RetainImages = req.RetainImages
 		if req.RetainLinks != nil {
 			opts.RetainLinks = *req.RetainLinks
+		}
+		if req.Frontmatter != nil {
+			opts.Frontmatter = *req.Frontmatter
 		}
 
 	default:

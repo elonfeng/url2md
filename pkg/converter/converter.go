@@ -3,6 +3,7 @@ package converter
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/elonfeng/url2md/internal/metadata"
@@ -58,12 +59,40 @@ func (c *converter) Convert(ctx context.Context, rawURL string, opts *Options) (
 
 		convertStart := time.Now()
 		meta := metadata.Extract(rawHTML)
-		tokenCount := token.Estimate(md)
+
+		// build final markdown with optional frontmatter and title
+		var final strings.Builder
+
+		if opts.Frontmatter && (meta.Title != "" || meta.Description != "" || meta.OG["og:image"] != "") {
+			final.WriteString("---\n")
+			if meta.Title != "" {
+				final.WriteString(fmt.Sprintf("title: %s\n", meta.Title))
+			}
+			if meta.Description != "" {
+				final.WriteString(fmt.Sprintf("description: %s\n", meta.Description))
+			}
+			if img := meta.OG["og:image"]; img != "" {
+				final.WriteString(fmt.Sprintf("image: %s\n", img))
+			}
+			final.WriteString("---\n\n")
+		}
+
+		// auto-prepend # Title if markdown doesn't already start with one
+		if meta.Title != "" && !strings.HasPrefix(md, "# ") {
+			final.WriteString("# ")
+			final.WriteString(meta.Title)
+			final.WriteString("\n\n")
+		}
+
+		final.WriteString(md)
+		finalMd := final.String()
+
+		tokenCount := token.Estimate(finalMd)
 		convertTime := time.Since(convertStart)
 
 		result := &Result{
 			URL:         rawURL,
-			Markdown:    md,
+			Markdown:    finalMd,
 			Title:       meta.Title,
 			Description: meta.Description,
 			TokenCount:  tokenCount,

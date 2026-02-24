@@ -6,6 +6,7 @@ import "time"
 type Options struct {
 	RetainImages  bool
 	RetainLinks   bool
+	Frontmatter   bool // prepend YAML frontmatter (title, description, image)
 	Timeout       time.Duration
 	EnableBrowser bool
 	UserAgent     string
@@ -17,6 +18,7 @@ func DefaultOptions() *Options {
 	return &Options{
 		RetainImages:  false,
 		RetainLinks:   true,
+		Frontmatter:   true,
 		Timeout:       30 * time.Second,
 		EnableBrowser: false,
 		UserAgent:     "url2md/1.0",

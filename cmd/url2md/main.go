@@ -23,6 +23,7 @@ func rootCmd() *cobra.Command {
 		method        string
 		retainImages  bool
 		retainLinks   bool
+		frontmatter   bool
 		enableBrowser bool
 		timeout       int
 		output        string
@@ -43,6 +44,7 @@ func rootCmd() *cobra.Command {
 				Method:        method,
 				RetainImages:  retainImages,
 				RetainLinks:   retainLinks,
+				Frontmatter:   frontmatter,
 				EnableBrowser: enableBrowser,
 				Timeout:       time.Duration(timeout) * time.Second,
 				UserAgent:     "url2md/1.0",
@@ -72,6 +74,7 @@ func rootCmd() *cobra.Command {
 	root.Flags().StringVarP(&method, "method", "m", "auto", "Conversion method: auto, negotiate, static, browser")
 	root.Flags().BoolVar(&retainImages, "images", false, "Retain images in output")
 	root.Flags().BoolVar(&retainLinks, "links", true, "Retain links in output")
+	root.Flags().BoolVar(&frontmatter, "frontmatter", true, "Prepend YAML frontmatter (title, description, image)")
 	root.Flags().BoolVar(&enableBrowser, "browser", false, "Enable headless Chrome fallback")
 	root.Flags().IntVarP(&timeout, "timeout", "t", 30, "Timeout in seconds")
 	root.Flags().StringVarP(&output, "output", "o", "", "Output file (default: stdout)")
@@ -102,6 +105,7 @@ func batchCmd() *cobra.Command {
 	var (
 		method        string
 		retainImages  bool
+		frontmatter   bool
 		enableBrowser bool
 		timeout       int
 	)
@@ -114,6 +118,7 @@ func batchCmd() *cobra.Command {
 			opts := &converter.Options{
 				Method:        method,
 				RetainImages:  retainImages,
+				Frontmatter:   frontmatter,
 				RetainLinks:   true,
 				EnableBrowser: enableBrowser,
 				Timeout:       time.Duration(timeout) * time.Second,
@@ -144,6 +149,7 @@ func batchCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&method, "method", "m", "auto", "Conversion method")
 	cmd.Flags().BoolVar(&retainImages, "images", false, "Retain images")
+	cmd.Flags().BoolVar(&frontmatter, "frontmatter", true, "Prepend YAML frontmatter")
 	cmd.Flags().BoolVar(&enableBrowser, "browser", false, "Enable browser fallback")
 	cmd.Flags().IntVarP(&timeout, "timeout", "t", 30, "Timeout in seconds")
 
