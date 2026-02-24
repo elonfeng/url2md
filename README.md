@@ -6,7 +6,7 @@ Convert web pages to clean, LLM-friendly Markdown.
 
 - **Three-layer fallback pipeline**: Content negotiation → Static fetch → Headless Chrome
 - **Smart extraction**: Readability-based article extraction with noise removal
-- **File type support**: PDF, DOCX, XLSX, CSV, images (magic bytes detection)
+- **15 file types**: PDF, DOCX, XLSX, XLS, ODT, CSV, JSON, XML, HTML, TXT, MD, PNG, JPG, SVG, WEBP
 - **YAML frontmatter**: Auto-generated title, description, og:image metadata
 - **Token estimation**: Approximate token count with CJK support
 - **Metadata extraction**: Title, description, Open Graph tags
@@ -81,7 +81,7 @@ docker run -p 8080:8080 \
 
 ### Image AI Description
 
-Image URLs (PNG, JPEG, GIF, WEBP) can be described using **Cloudflare Workers AI** vision model (`@cf/meta/llama-3.2-11b-vision-instruct`). This feature is **optional** — without credentials, url2md falls back to image metadata + embed.
+Image URLs (PNG, JPEG, GIF, WEBP, SVG) can be described using **Cloudflare Workers AI** vision model (`@cf/meta/llama-3.2-11b-vision-instruct`). This feature is **optional** — without credentials, url2md falls back to image metadata + embed.
 
 To enable, set two environment variables (see [.env.example](.env.example)):
 

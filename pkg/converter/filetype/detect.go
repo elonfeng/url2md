@@ -15,17 +15,24 @@ const (
 	TypePDF  Type = "pdf"
 	TypeDOCX Type = "docx"
 	TypeXLSX Type = "xlsx"
+	TypeXLS  Type = "xls"
+	TypeODT  Type = "odt"
 	TypeCSV  Type = "csv"
+	TypeJSON Type = "json"
+	TypeXML  Type = "xml"
+	TypeTXT  Type = "txt"
+	TypeMD   Type = "md"
 	TypePNG  Type = "png"
 	TypeJPEG Type = "jpeg"
 	TypeGIF  Type = "gif"
 	TypeWEBP Type = "webp"
+	TypeSVG  Type = "svg"
 )
 
 // IsImage returns true if the type is an image format.
 func (t Type) IsImage() bool {
 	switch t {
-	case TypePNG, TypeJPEG, TypeGIF, TypeWEBP:
+	case TypePNG, TypeJPEG, TypeGIF, TypeWEBP, TypeSVG:
 		return true
 	}
 	return false
@@ -41,8 +48,20 @@ func DetectFromURL(rawURL string) Type {
 		return TypeDOCX
 	case ".xlsx":
 		return TypeXLSX
+	case ".xls":
+		return TypeXLS
+	case ".odt":
+		return TypeODT
 	case ".csv":
 		return TypeCSV
+	case ".json":
+		return TypeJSON
+	case ".xml":
+		return TypeXML
+	case ".txt":
+		return TypeTXT
+	case ".md", ".markdown":
+		return TypeMD
 	case ".png":
 		return TypePNG
 	case ".jpg", ".jpeg":
@@ -51,6 +70,8 @@ func DetectFromURL(rawURL string) Type {
 		return TypeGIF
 	case ".webp":
 		return TypeWEBP
+	case ".svg":
+		return TypeSVG
 	}
 	return TypeHTML
 }
@@ -66,9 +87,19 @@ func DetectFromContentType(ct string) Type {
 	case strings.Contains(ct, "application/vnd.openxmlformats-officedocument.spreadsheetml"):
 		return TypeXLSX
 	case strings.Contains(ct, "application/vnd.ms-excel"):
-		return TypeXLSX
+		return TypeXLS
+	case strings.Contains(ct, "application/vnd.oasis.opendocument.text"):
+		return TypeODT
 	case strings.Contains(ct, "text/csv"):
 		return TypeCSV
+	case strings.Contains(ct, "application/json"):
+		return TypeJSON
+	case strings.Contains(ct, "application/xml"), strings.Contains(ct, "text/xml"):
+		return TypeXML
+	case strings.Contains(ct, "text/plain"):
+		return TypeTXT
+	case strings.Contains(ct, "text/markdown"):
+		return TypeMD
 	case strings.Contains(ct, "image/png"):
 		return TypePNG
 	case strings.Contains(ct, "image/jpeg"):
@@ -77,6 +108,8 @@ func DetectFromContentType(ct string) Type {
 		return TypeGIF
 	case strings.Contains(ct, "image/webp"):
 		return TypeWEBP
+	case strings.Contains(ct, "image/svg+xml"):
+		return TypeSVG
 	case strings.Contains(ct, "application/octet-stream"):
 		// generic binary — defer to magic bytes detection
 		return TypeHTML
@@ -89,7 +122,8 @@ func DetectFromContentType(ct string) Type {
 // Magic byte signatures for binary file detection.
 var (
 	magicPDF  = []byte("%PDF")
-	magicZIP  = []byte("PK\x03\x04") // DOCX and XLSX are ZIP-based
+	magicZIP  = []byte("PK\x03\x04") // DOCX, XLSX, ODT are ZIP-based
+	magicXLS  = []byte("\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1") // OLE2 Compound Binary (legacy .xls)
 	magicPNG  = []byte("\x89PNG\r\n\x1a\n")
 	magicJPEG = []byte("\xff\xd8\xff")
 	magicGIF  = []byte("GIF8")
@@ -107,6 +141,8 @@ func DetectFromBytes(data []byte) Type {
 		return TypePDF
 	case bytes.HasPrefix(data, magicZIP):
 		return detectZIPType(data)
+	case bytes.HasPrefix(data, magicXLS):
+		return TypeXLS
 	case bytes.HasPrefix(data, magicPNG):
 		return TypePNG
 	case bytes.HasPrefix(data, magicJPEG):
@@ -119,9 +155,9 @@ func DetectFromBytes(data []byte) Type {
 	return TypeHTML
 }
 
-// detectZIPType distinguishes DOCX from XLSX by looking for known paths in the ZIP.
+// detectZIPType distinguishes DOCX, XLSX, and ODT by looking for known paths in the ZIP.
 func detectZIPType(data []byte) Type {
-	// Look for Office Open XML markers in the first 4KB
+	// Look for markers in the first 4KB
 	peek := data
 	if len(peek) > 4096 {
 		peek = peek[:4096]
@@ -131,6 +167,9 @@ func detectZIPType(data []byte) Type {
 	}
 	if bytes.Contains(peek, []byte("xl/")) || bytes.Contains(peek, []byte("xl\\")) {
 		return TypeXLSX
+	}
+	if bytes.Contains(peek, []byte("mimetype")) && bytes.Contains(peek, []byte("opendocument.text")) {
+		return TypeODT
 	}
 	// Unknown ZIP type
 	return TypeHTML

@@ -52,8 +52,36 @@ func (l *StaticLayer) Convert(ctx context.Context, rawURL string, opts *Options)
 		markdown, err := filetype.ConvertXLSX(data, filename)
 		return markdown, "", err
 
+	case filetype.TypeXLS:
+		markdown, err := filetype.ConvertXLS(data, filename)
+		return markdown, "", err
+
+	case filetype.TypeODT:
+		markdown, err := filetype.ConvertODT(data, filename)
+		return markdown, "", err
+
 	case filetype.TypeCSV:
 		markdown, err := filetype.ConvertCSV(data, filename)
+		return markdown, "", err
+
+	case filetype.TypeJSON:
+		markdown, err := filetype.ConvertJSON(data, filename)
+		return markdown, "", err
+
+	case filetype.TypeXML:
+		markdown, err := filetype.ConvertXML(data, filename)
+		return markdown, "", err
+
+	case filetype.TypeTXT:
+		markdown, err := filetype.ConvertTXT(data, filename)
+		return markdown, "", err
+
+	case filetype.TypeMD:
+		markdown, err := filetype.ConvertMD(data)
+		return markdown, "", err
+
+	case filetype.TypeSVG:
+		markdown, err := filetype.ConvertImage(ctx, data, filename, rawURL, "image/svg+xml", opts.Vision)
 		return markdown, "", err
 
 	case filetype.TypePNG, filetype.TypeJPEG, filetype.TypeGIF, filetype.TypeWEBP:
