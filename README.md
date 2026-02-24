@@ -112,13 +112,13 @@ URL → [Layer 1: Content Negotiation]
 
 ## Benchmark vs markdown.new
 
-Tested against [markdown.new](https://markdown.new) (Cloudflare Workers AI) across 11 test cases. Full report: [BENCHMARK.md](BENCHMARK.md).
+Tested against [markdown.new](https://markdown.new) (Cloudflare Workers AI) across 16 test cases. Full report: [BENCHMARK.md](BENCHMARK.md).
 
 | Category | url2md Wins | Ties | markdown.new Wins |
 |----------|-------------|------|-------------------|
 | Web Pages (6 tests) | **4** | 2 | 0 |
-| File Types (5 tests) | **2** | 3 | 0 |
-| **Total (11 tests)** | **6** | **5** | **0** |
+| File Types (10 tests) | **2** | 8 | 0 |
+| **Total (16 tests)** | **6** | **10** | **0** |
 
 **Key advantages**:
 - **1.3x-4.6x fewer tokens** on web pages (avg 2.2x more efficient)

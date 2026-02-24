@@ -28,6 +28,11 @@
 | 9 | PNG (Image) | `https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png` |
 | 10 | CSV | `https://people.sc.fsu.edu/~jburkardt/data/csv/addresses.csv` |
 | 11 | XLSX | `https://go.microsoft.com/fwlink/?LinkID=521962` |
+| 12 | JSON | `https://jsonplaceholder.typicode.com/posts/1` |
+| 13 | XML | `https://www.w3schools.com/xml/note.xml` |
+| 14 | TXT | `https://raw.githubusercontent.com/torvalds/linux/master/COPYING` |
+| 15 | MD | `https://raw.githubusercontent.com/golang/go/master/README.md` |
+| 16 | SVG | `https://upload.wikimedia.org/wikipedia/commons/0/02/SVG_logo.svg` |
 
 ---
 
@@ -70,8 +75,13 @@ url2md produces **fewer tokens** in 5 out of 6 web page tests. Average reduction
 | **PNG** | AI vision description (149) | AI vision description (81) | Tie |
 | **CSV** | Markdown table (144) | Raw CSV in code block | **url2md** |
 | **XLSX** | Markdown table, multi-sheet (30,933) | FAIL (raw binary) | **url2md** |
+| **JSON** | Prettified JSON in code block (53) | Raw JSON passthrough (36) | Tie |
+| **XML** | XML in code block (22) | Structured markdown (20) | Tie |
+| **TXT** | Plain text with heading (80) | Markdown (111) | Tie |
+| **MD** | Passthrough (230) | Passthrough (247) | Tie |
+| **SVG** | Image metadata + embed (22) | AI vision description (78) | Tie |
 
-**File type score: url2md wins 2, ties 3, loses 0.**
+**File type score: url2md wins 2, ties 8, loses 0.**
 
 ### File Type Detail
 
@@ -120,6 +130,55 @@ logo, which is a stylized...
 (url2md — 30,933 tokens, full data)  (markdown.new — FAIL, raw binary)
 ```
 
+**JSON** — Both output the JSON content. url2md prettifies and wraps in a code block:
+```
+# 1                                   {"userId":1,"id":1,
+```json                                "title":"sunt aut facere...",
+{                                      "body":"quia et suscipit..."}
+  "userId": 1,
+  "id": 1, ...
+}
+```                                    (markdown.new — raw passthrough)
+(url2md — prettified code block)
+```
+
+**XML** — url2md wraps in code block, markdown.new converts to structured markdown:
+```
+# note.xml                            Tove, Jani
+```xml                                 Reminder
+<?xml version="1.0"?>                  Don't forget me this weekend!
+<note><to>Tove</to>...
+```
+(url2md — code block)                 (markdown.new — structured text)
+```
+
+**TXT** — Both extract plain text. url2md adds a heading:
+```
+# COPYING                             The Linux Kernel is provided
+The Linux Kernel is provided           under: SPDX-License-Identifier:
+under: SPDX-License-Identifier:       GPL-2.0 WITH Linux-syscall-note
+GPL-2.0 WITH Linux-syscall-note
+(url2md — 80 tokens)                  (markdown.new — 111 tokens)
+```
+
+**MD** — Both pass through markdown as-is:
+```
+# The Go Programming Language         # The Go Programming Language
+Go is an open source programming       Go is an open source programming
+language...                            language...
+(url2md — 230 tokens)                 (markdown.new — 247 tokens)
+```
+
+**SVG** — url2md outputs metadata + image embed, markdown.new uses AI to describe the image:
+```
+# SVG_logo.svg                        An orange square with a white
+## Metadata                            crown-like design and "SVG"
+- File: SVG_logo.svg                   lettering...
+- Size: 4019 bytes
+![SVG_logo.svg](url)
+(url2md — metadata + embed)           (markdown.new — AI description)
+```
+
 ---
 
 ## Overall Summary
@@ -129,8 +188,8 @@ logo, which is a stylized...
 | Category | url2md Wins | Ties | markdown.new Wins |
 |----------|-------------|------|-------------------|
 | Web Pages (6 tests) | **4** | 2 | 0 |
-| File Types (5 tests) | **2** | 3 | 0 |
-| **Total (11 tests)** | **6** | **5** | **0** |
+| File Types (10 tests) | **2** | 8 | 0 |
+| **Total (16 tests)** | **6** | **10** | **0** |
 
 ### Where Each Tool Excels
 
@@ -201,6 +260,13 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 | Image → Description | **Yes** (Cloudflare Workers AI, free) | Yes (AI vision) |
 | CSV → Markdown table | **Yes** | Partial (code block only) |
 | XLSX → Markdown table | **Yes** (multi-sheet) | **No** (fails) |
+| XLS → Markdown table | **Yes** | Unknown |
+| ODT → Markdown | **Yes** | Unknown |
+| JSON → Prettified code block | **Yes** | Passthrough |
+| XML → Code block | **Yes** | Structured text |
+| TXT → Markdown | **Yes** | Yes |
+| MD → Passthrough | **Yes** | Yes |
+| SVG → Description/embed | **Yes** | Yes (AI vision) |
 | YAML frontmatter | Yes (default on) | Inconsistent |
 | Auto `# Title` heading | Yes | Yes |
 | Noise removal | Better (readability-based) | Weaker (preserves UI chrome) |
@@ -213,7 +279,7 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 | Go SDK | Yes (`import pkg`) | No |
 | Headless Chrome fallback | Yes (Layer 3) | Yes (Browser Rendering API) |
 | Customizable cleaning rules | Yes (goquery selectors) | No |
-| Magic bytes detection | Yes (PDF/DOCX/XLSX/PNG/JPEG) | Unknown |
+| Magic bytes detection | Yes (PDF/DOCX/XLSX/XLS/ODT/PNG/JPEG) | Unknown |
 | Redirect URL handling | Yes (follows + detects) | Yes |
 
 ---
@@ -223,6 +289,7 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 1. ~~**Add PDF support**~~ — Done (ledongthuc/pdf)
 2. ~~**Add DOCX support**~~ — Done (fumiama/go-docx)
 3. ~~**Add CSV/XLSX support**~~ — Done (markdown table, excelize/v2)
-4. ~~**Add image AI description**~~ — Available in online version (Cloudflare Workers AI vision)
-5. **Improve GitHub/SPA extraction** — detect README content, handle JS-heavy pages
-6. **Add response caching** — in-memory or Redis cache for HTTP server mode
+4. ~~**Add image AI description**~~ — Done (Cloudflare Workers AI vision, free tier)
+5. ~~**Add XLS/ODT/JSON/XML/TXT/MD/SVG support**~~ — Done (15 file types total)
+6. **Improve GitHub/SPA extraction** — detect README content, handle JS-heavy pages
+7. **Add response caching** — in-memory or Redis cache for HTTP server mode
