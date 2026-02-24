@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -52,6 +53,11 @@ type cfAIResponse struct {
 
 type cfError struct {
 	Message string `json:"message"`
+	Code    int    `json:"code"`
+}
+
+type cfAgreeRequest struct {
+	Prompt string `json:"prompt"`
 }
 
 // DescribeImage sends the image to Cloudflare Workers AI vision and returns a text description.
@@ -89,9 +95,47 @@ func DescribeImage(ctx context.Context, cfg *VisionConfig, data []byte, contentT
 		return "", fmt.Errorf("marshal request: %w", err)
 	}
 
-	url := fmt.Sprintf("https://api.cloudflare.com/client/v4/accounts/%s/ai/run/@cf/meta/llama-3.2-11b-vision-instruct", cfg.AccountID)
+	apiURL := fmt.Sprintf("https://api.cloudflare.com/client/v4/accounts/%s/ai/run/@cf/meta/llama-3.2-11b-vision-instruct", cfg.AccountID)
 
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+	desc, err := callVisionAPI(ctx, cfg, apiURL, body)
+	if err != nil && isModelAgreementError(err) {
+		// Auto-agree to model license and retry
+		if agreeErr := acceptModelAgreement(ctx, cfg, apiURL); agreeErr != nil {
+			return "", fmt.Errorf("accept model agreement: %w", agreeErr)
+		}
+		return callVisionAPI(ctx, cfg, apiURL, body)
+	}
+	return desc, err
+}
+
+// isModelAgreementError checks if the error is a model license agreement requirement.
+func isModelAgreementError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "Model Agreement")
+}
+
+// acceptModelAgreement sends "agree" to accept the model's license agreement.
+func acceptModelAgreement(ctx context.Context, cfg *VisionConfig, apiURL string) error {
+	agreeBody, _ := json.Marshal(cfAgreeRequest{Prompt: "agree"})
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, apiURL, bytes.NewReader(agreeBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+cfg.APIToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
+	return nil
+}
+
+// callVisionAPI sends a request and parses the response.
+func callVisionAPI(ctx context.Context, cfg *VisionConfig, apiURL string, body []byte) (string, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, apiURL, bytes.NewReader(body))
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
 	}

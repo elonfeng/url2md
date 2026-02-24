@@ -67,11 +67,11 @@ url2md produces **fewer tokens** in 5 out of 6 web page tests. Average reduction
 |-----------|-----------------|----------------------|--------|
 | **PDF** | Text extraction by page (13) | Text + metadata via AI (83) | Tie |
 | **DOCX** | Full doc: headings, bold/italic, tables (2,418) | Full doc via AI (2,836) | Tie |
-| **PNG** | Metadata + image embed (23) | AI vision description (81) | **markdown.new** |
+| **PNG** | AI vision description (149) | AI vision description (81) | Tie |
 | **CSV** | Markdown table (144) | Raw CSV in code block | **url2md** |
 | **XLSX** | Markdown table, multi-sheet (30,933) | FAIL (raw binary) | **url2md** |
 
-**File type score: url2md wins 2, ties 2, loses 1.**
+**File type score: url2md wins 2, ties 3, loses 0.**
 
 ### File Type Detail
 
@@ -92,14 +92,14 @@ Demonstration of DOCX support in calibre
 **bold**, _italic_, ~~strikethrough~~, tables, headings — both handle well.
 ```
 
-**PNG** — markdown.new uses AI vision for description. url2md outputs metadata + image embed:
+**PNG** — Both use AI vision for description. url2md uses Cloudflare Workers AI (free), markdown.new uses Workers AI:
 ```
-# nurbcup2si.png                     The image displays a 3D rendered
-## Metadata                          teacup with a smooth surface...
-- File: nurbcup2si.png
-- Size: 18746 bytes
-![nurbcup2si.png](url)
-(url2md)                             (markdown.new)
+# googlelogo_color_272x92dp.png     The image displays the Google logo...
+## Description                      (AI-generated description of the
+The image displays the Google       logo with color details)
+logo, which is a stylized...
+![image](url)
+(url2md — 149 tokens, AI vision)   (markdown.new — 81 tokens, AI vision)
 ```
 
 **CSV** — url2md converts to a proper markdown table, markdown.new wraps raw CSV in a code block:
@@ -129,8 +129,8 @@ Demonstration of DOCX support in calibre
 | Category | url2md Wins | Ties | markdown.new Wins |
 |----------|-------------|------|-------------------|
 | Web Pages (6 tests) | **4** | 2 | 0 |
-| File Types (5 tests) | **2** | 2 | 1 |
-| **Total (11 tests)** | **6** | **4** | **1** |
+| File Types (5 tests) | **2** | 3 | 0 |
+| **Total (11 tests)** | **6** | **5** | **0** |
 
 ### Where Each Tool Excels
 
@@ -146,7 +146,7 @@ Demonstration of DOCX support in calibre
 **markdown.new is better for**:
 - Zero-setup usage (SaaS, no deployment needed)
 
-> **Note**: Image AI description requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` env vars (free tier). Without them, url2md outputs image metadata + embed.
+> **Note**: Image AI description requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` env vars (free tier available). Without them, url2md outputs image metadata + embed instead of AI description.
 
 ---
 
@@ -198,7 +198,7 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 | Web page → Markdown | Yes | Yes |
 | PDF → Markdown | Yes (native Go) | Yes (Workers AI) |
 | DOCX → Markdown | Yes (go-docx) | Yes (Workers AI) |
-| Image → Description | Yes (Cloudflare Workers AI, free) | Yes (AI vision) |
+| Image → Description | **Yes** (Cloudflare Workers AI, free) | Yes (AI vision) |
 | CSV → Markdown table | **Yes** | Partial (code block only) |
 | XLSX → Markdown table | **Yes** (multi-sheet) | **No** (fails) |
 | YAML frontmatter | Yes (default on) | Inconsistent |

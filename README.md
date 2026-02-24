@@ -14,7 +14,7 @@ Convert web pages to clean, LLM-friendly Markdown.
 
 ### Image Understanding
 
-Image URLs are processed with AI-powered description via **Cloudflare Workers AI** (free):
+Image URLs are processed with AI-powered description via **Cloudflare Workers AI** (free tier: 10,000 neurons/day). See [.env.example](.env.example) for setup:
 
 ```bash
 export CLOUDFLARE_ACCOUNT_ID="your-account-id"
@@ -96,6 +96,23 @@ URL → [Layer 1: Content Negotiation]
        ↓
       Clean Markdown + Metadata + Token Count
 ```
+
+## Benchmark vs markdown.new
+
+Tested against [markdown.new](https://markdown.new) (Cloudflare Workers AI) across 11 test cases. Full report: [BENCHMARK.md](BENCHMARK.md).
+
+| Category | url2md Wins | Ties | markdown.new Wins |
+|----------|-------------|------|-------------------|
+| Web Pages (6 tests) | **4** | 2 | 0 |
+| File Types (5 tests) | **2** | 3 | 0 |
+| **Total (11 tests)** | **6** | **5** | **0** |
+
+**Key advantages**:
+- **1.3x-4.6x fewer tokens** on web pages (avg 2.2x more efficient)
+- **Complete CJK extraction** (markdown.new truncates Chinese content)
+- **Better noise removal** — strips nav/ads/UI chrome via readability
+- **CSV → markdown table** (vs code block), **XLSX → markdown table** (markdown.new fails)
+- **Self-hosted**, open source, customizable pipeline
 
 ## License
 
