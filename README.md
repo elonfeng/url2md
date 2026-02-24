@@ -14,14 +14,15 @@ Convert web pages to clean, LLM-friendly Markdown.
 
 ### Image Understanding
 
-Currently, image URLs output metadata (filename, size, content-type) and a markdown image embed. AI-powered image description is planned via a pluggable vision provider:
+Image URLs are processed with AI-powered description via **Cloudflare Workers AI** (free):
 
-1. Detect image type via magic bytes (PNG, JPEG, GIF, WEBP)
-2. Base64-encode the image data
-3. Send to a vision model API (Cloudflare Workers AI `@cf/meta/llama-3.2-11b-vision-instruct`, OpenAI GPT-4o, or Claude) with the prompt: *"Describe this image in detail for a markdown document"*
-4. Return the AI-generated description as markdown text
+```bash
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
+export CLOUDFLARE_API_TOKEN="your-api-token"
+url2md https://example.com/photo.png
+```
 
-This will be configurable via `--vision-provider` flag and `VISION_API_KEY` environment variable. Contributions welcome.
+Uses `@cf/meta/llama-3.2-11b-vision-instruct` to generate natural language descriptions. Without env vars, falls back to metadata + image embed.
 
 ## Install
 

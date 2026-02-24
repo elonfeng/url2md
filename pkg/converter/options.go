@@ -1,6 +1,10 @@
 package converter
 
-import "time"
+import (
+	"time"
+
+	"github.com/elonfeng/url2md/pkg/converter/filetype"
+)
 
 // Options configures the conversion behavior.
 type Options struct {
@@ -11,6 +15,7 @@ type Options struct {
 	EnableBrowser bool
 	UserAgent     string
 	Method        string // "auto" | "negotiate" | "static" | "browser"
+	Vision        *filetype.VisionConfig
 }
 
 // DefaultOptions returns sensible defaults for conversion.

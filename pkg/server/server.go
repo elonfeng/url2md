@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/elonfeng/url2md/pkg/converter"
+	"github.com/elonfeng/url2md/pkg/converter/filetype"
 )
 
 type convertRequest struct {
@@ -65,8 +67,8 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleConvert(w http.ResponseWriter, r *http.Request) {
-	var opts converter.Options
-	*(&opts) = *converter.DefaultOptions()
+	opts := *converter.DefaultOptions()
+	opts.Vision = visionFromEnv()
 
 	var targetURL string
 
@@ -168,4 +170,16 @@ func writeError(w http.ResponseWriter, code int, msg string) {
 // SetTimeout configures the converter timeout (used for testing).
 func (s *Server) SetTimeout(d time.Duration) {
 	// Not directly exposed, but could be extended.
+}
+
+func visionFromEnv() *filetype.VisionConfig {
+	accountID := os.Getenv("CLOUDFLARE_ACCOUNT_ID")
+	apiToken := os.Getenv("CLOUDFLARE_API_TOKEN")
+	if accountID == "" || apiToken == "" {
+		return nil
+	}
+	return &filetype.VisionConfig{
+		AccountID: accountID,
+		APIToken:  apiToken,
+	}
 }

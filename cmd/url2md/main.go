@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/elonfeng/url2md/pkg/converter"
+	"github.com/elonfeng/url2md/pkg/converter/filetype"
 	"github.com/elonfeng/url2md/pkg/server"
 	"github.com/spf13/cobra"
 )
@@ -48,6 +49,7 @@ func rootCmd() *cobra.Command {
 				EnableBrowser: enableBrowser,
 				Timeout:       time.Duration(timeout) * time.Second,
 				UserAgent:     "url2md/1.0",
+				Vision:        visionFromEnv(),
 			}
 
 			ctx := context.Background()
@@ -123,6 +125,7 @@ func batchCmd() *cobra.Command {
 				EnableBrowser: enableBrowser,
 				Timeout:       time.Duration(timeout) * time.Second,
 				UserAgent:     "url2md/1.0",
+				Vision:        visionFromEnv(),
 			}
 
 			ctx := context.Background()
@@ -154,4 +157,17 @@ func batchCmd() *cobra.Command {
 	cmd.Flags().IntVarP(&timeout, "timeout", "t", 30, "Timeout in seconds")
 
 	return cmd
+}
+
+// visionFromEnv reads Cloudflare Workers AI credentials from environment variables.
+func visionFromEnv() *filetype.VisionConfig {
+	accountID := os.Getenv("CLOUDFLARE_ACCOUNT_ID")
+	apiToken := os.Getenv("CLOUDFLARE_API_TOKEN")
+	if accountID == "" || apiToken == "" {
+		return nil
+	}
+	return &filetype.VisionConfig{
+		AccountID: accountID,
+		APIToken:  apiToken,
+	}
 }

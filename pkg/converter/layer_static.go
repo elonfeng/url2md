@@ -57,7 +57,7 @@ func (l *StaticLayer) Convert(ctx context.Context, rawURL string, opts *Options)
 		return markdown, "", err
 
 	case filetype.TypePNG, filetype.TypeJPEG, filetype.TypeGIF, filetype.TypeWEBP:
-		markdown, err := filetype.ConvertImage(data, filename, rawURL, ct)
+		markdown, err := filetype.ConvertImage(ctx, data, filename, rawURL, ct, opts.Vision)
 		return markdown, "", err
 	}
 

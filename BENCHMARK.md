@@ -146,7 +146,7 @@ Demonstration of DOCX support in calibre
 **markdown.new is better for**:
 - Zero-setup usage (SaaS, no deployment needed)
 
-> **Note**: Image AI description is available in the online (Cloudflare-hosted) version of url2md. The self-hosted/CLI version outputs image metadata + embed.
+> **Note**: Image AI description requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` env vars (free tier). Without them, url2md outputs image metadata + embed.
 
 ---
 
@@ -198,7 +198,7 @@ Both tools fail on anti-bot protected sites (Reuters, TechCrunch). url2md's Laye
 | Web page → Markdown | Yes | Yes |
 | PDF → Markdown | Yes (native Go) | Yes (Workers AI) |
 | DOCX → Markdown | Yes (go-docx) | Yes (Workers AI) |
-| Image → Description | Yes (AI vision, online only) | Yes (AI vision) |
+| Image → Description | Yes (Cloudflare Workers AI, free) | Yes (AI vision) |
 | CSV → Markdown table | **Yes** | Partial (code block only) |
 | XLSX → Markdown table | **Yes** (multi-sheet) | **No** (fails) |
 | YAML frontmatter | Yes (default on) | Inconsistent |
